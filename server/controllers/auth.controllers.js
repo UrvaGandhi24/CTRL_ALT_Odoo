@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken'
 
 export const signup = async (req, res) => {
 	try {
-		const { username, email, password, fullName } = req.body;
+		const { username, email, password, fullName, role } = req.body;
 
 		if (!fullName) {
 			return res.status(400).json({ message: "Full name is required" });
@@ -18,7 +18,7 @@ export const signup = async (req, res) => {
 		if (existingUsername)
 			return res.status(400).json({ message: "Username already taken" });
 
-		const newUser = new User({ username, email, password, fullName });
+		const newUser = new User({ username, email, password, fullName, role });
 		await newUser.save();
 
 		res.status(201).json({ message: "User registered successfully" });
@@ -39,12 +39,12 @@ export const login = async (req, res) => {
 			return res.status(401).json({ message: "Invalid credentials" });
 
 		const token = jwt.sign(
-			{ id: user._id, email: user.email },
+			{ id: user._id, email: user.email  },
 			process.env.JWT_SECRET,
 			{ expiresIn: "10m" }
 		);
 
-		res.status(200).json({ message: "Login successful", token });
+		res.status(200).json({ message: "Login successful", token, role: user.role });
 	} catch (error) {
 		console.error(error);
 		res.status(500).json({ message: "Login failed" });

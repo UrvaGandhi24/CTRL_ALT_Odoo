@@ -32,7 +32,6 @@ const createMockAuth = () => {
 const Profile = () => {
     const [user, setUser] = useState(null);
     const [formData, setFormData] = useState({
-        fullName: '',
         location: '',
         bio: '',
         skillsOffered: [],
@@ -69,7 +68,6 @@ const Profile = () => {
             const userData = response.data;
             setUser(userData);
             setFormData({
-                fullName: userData.fullName || '',
                 location: userData.location || '',
                 bio: userData.bio || '',
                 skillsOffered: userData.skillsOffered || [],
@@ -84,7 +82,6 @@ const Profile = () => {
             if (mockUser._id) {
                 setUser(mockUser);
                 setFormData({
-                    fullName: mockUser.fullName || '',
                     location: mockUser.location || '',
                     bio: mockUser.bio || '',
                     skillsOffered: mockUser.skillsOffered || [],

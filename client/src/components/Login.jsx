@@ -70,7 +70,8 @@ function Login() {
 
 			// Success animation before navigation
 			setTimeout(() => {
-				navigate('/dashboard');
+				if(response.data.role === "admin") navigate('/admin')
+				else navigate('/dashboard');
 			}, 500);
 
 		} catch (err) {
