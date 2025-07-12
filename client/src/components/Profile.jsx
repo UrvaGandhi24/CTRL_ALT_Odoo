@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import './Profile.css';
 
 // Mock authentication for development/demo
 const createMockAuth = () => {
@@ -175,9 +176,14 @@ const Profile = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <div className="spinner mx-auto mb-4"></div>
+            <div className="profile-container">
+                <div className="floating-element"></div>
+                <div className="floating-element"></div>
+                <div className="floating-element"></div>
+                <div className="floating-element"></div>
+                
+                <div className="loading-container">
+                    <div className="spinner"></div>
                     <p>Loading your profile...</p>
                 </div>
             </div>
@@ -185,42 +191,48 @@ const Profile = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="profile-container">
+            <div className="floating-element"></div>
+            <div className="floating-element"></div>
+            <div className="floating-element"></div>
+            <div className="floating-element"></div>
+            
             {/* Navigation */}
-            <nav className="nav">
-                <div className="container nav-container">
+            <nav className="profile-nav">
+                <div className="nav-container">
                     <Link to="/dashboard" className="nav-brand">
-                        Skill Swap Platform
+                        <span style={{ marginRight: '8px' }}>📚</span>
+                        SkillSwap Platform
                     </Link>
                     <div className="nav-links">
-                        <Link to="/dashboard" className="nav-item">Dashboard</Link>
-                        <Link to="/search" className="nav-item">Browse Skills</Link>
-                        <Link to="/swaps" className="nav-item">My Swaps</Link>
-                        <Link to="/profile" className="nav-item active">Profile</Link>
-                        {user?.role === 'admin' && (
-                            <Link to="/admin" className="nav-item">Admin</Link>
+                        <Link to="/dashboard" className="nav-item">📊 Dashboard</Link>
+                        <Link to="/search" className="nav-item">🔍 Browse Skills</Link>
+                        <Link to="/swaps" className="nav-item">🔄 My Swaps</Link>
+                        <Link to="/profile" className="nav-item active">👤 Profile</Link>
+                        {user?.isAdmin && (
+                            <Link to="/admin" className="nav-item">⚙️ Admin</Link>
                         )}
-                        <button onClick={handleLogout} className="nav-item">Logout</button>
+                        <button onClick={handleLogout} className="nav-item">🚪 Logout</button>
                     </div>
                 </div>
             </nav>
 
             {/* Main Content */}
-            <div className="container py-8">
-                <div className="max-w-4xl mx-auto">
-                    <div className="mb-8">
-                        <h1 className="text-3xl font-bold text-gray-900 mb-2">Your Profile</h1>
-                        <p className="text-gray-600">Manage your skills and preferences</p>
+            <div className="profile-content">
+                <div className="content-wrapper">
+                    <div className="profile-header">
+                        <h1 className="profile-title">Your Profile</h1>
+                        <p className="profile-subtitle">Manage your skills and preferences</p>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-8">
+                    <form onSubmit={handleSubmit} className="profile-form">
                         {/* Basic Information */}
-                        <div className="card">
+                        <div className="profile-card">
                             <div className="card-header">
-                                <h2 className="text-xl font-semibold">Basic Information</h2>
+                                <h2 className="card-title">📝 Basic Information</h2>
                             </div>
-                            <div className="card-body space-y-4">
-                                <div className="grid grid-1 md:grid-2 gap-4">
+                            <div className="card-body">
+                                <div className="form-grid form-grid-2">
                                     <div className="form-group">
                                         <label className="form-label">Full Name</label>
                                         <input
@@ -228,7 +240,7 @@ const Profile = () => {
                                             name="fullName"
                                             value={formData.fullName}
                                             onChange={handleInputChange}
-                                            className="input"
+                                            className="form-input"
                                             required
                                         />
                                     </div>
@@ -240,7 +252,7 @@ const Profile = () => {
                                             value={formData.location}
                                             onChange={handleInputChange}
                                             placeholder="e.g., New York, NY"
-                                            className="input"
+                                            className="form-input"
                                         />
                                     </div>
                                 </div>
@@ -251,7 +263,7 @@ const Profile = () => {
                                         value={formData.bio}
                                         onChange={handleInputChange}
                                         placeholder="Tell others about yourself and your interests..."
-                                        className="textarea"
+                                        className="form-textarea"
                                         rows={4}
                                     />
                                     <p className="form-help">
@@ -262,24 +274,24 @@ const Profile = () => {
                         </div>
 
                         {/* Skills Offered */}
-                        <div className="card">
+                        <div className="profile-card">
                             <div className="card-header">
-                                <h2 className="text-xl font-semibold">Skills I Can Offer</h2>
+                                <h2 className="card-title">🎯 Skills I Can Offer</h2>
                             </div>
-                            <div className="card-body space-y-4">
+                            <div className="card-body">
                                 {/* Current Skills */}
-                                <div className="space-y-3">
+                                <div className="form-grid">
                                     {formData.skillsOffered.map((skill, index) => (
-                                        <div key={index} className="flex items-center justify-between p-3 bg-green-50 rounded-md">
-                                            <div>
-                                                <h4 className="font-medium">{skill.name}</h4>
-                                                <p className="text-sm text-gray-600">{skill.description}</p>
-                                                <span className="skill-badge skill-badge-offered">{skill.level}</span>
+                                        <div key={index} className="skill-item offered">
+                                            <div className="skill-info">
+                                                <h4>{skill.name}</h4>
+                                                <p>{skill.description}</p>
+                                                <span className="skill-badge offered">{skill.level}</span>
                                             </div>
                                             <button
                                                 type="button"
                                                 onClick={() => removeSkillOffered(index)}
-                                                className="btn btn-danger text-sm"
+                                                className="btn btn-danger"
                                             >
                                                 Remove
                                             </button>
@@ -288,9 +300,9 @@ const Profile = () => {
                                 </div>
 
                                 {/* Add New Skill */}
-                                <div className="border-t pt-4">
-                                    <h3 className="font-medium mb-3">Add New Skill</h3>
-                                    <div className="grid grid-1 md:grid-3 gap-4">
+                                <div className="add-skill-section">
+                                    <h3 className="add-skill-title">Add New Skill</h3>
+                                    <div className="form-grid form-grid-3">
                                         <div>
                                             <input
                                                 type="text"
@@ -300,7 +312,7 @@ const Profile = () => {
                                                     name: e.target.value
                                                 }))}
                                                 placeholder="Skill name"
-                                                className="input"
+                                                className="form-input"
                                             />
                                         </div>
                                         <div>
@@ -312,17 +324,18 @@ const Profile = () => {
                                                     description: e.target.value
                                                 }))}
                                                 placeholder="Brief description"
-                                                className="input"
+                                                className="form-input"
                                             />
                                         </div>
-                                        <div className="flex gap-2">
+                                        <div className="add-skill-form">
                                             <select
                                                 value={newSkillOffered.level}
                                                 onChange={(e) => setNewSkillOffered(prev => ({
                                                     ...prev,
                                                     level: e.target.value
                                                 }))}
-                                                className="select flex-1"
+                                                className="form-select"
+                                                style={{ flex: 1 }}
                                             >
                                                 <option value="Beginner">Beginner</option>
                                                 <option value="Intermediate">Intermediate</option>
@@ -332,7 +345,7 @@ const Profile = () => {
                                             <button
                                                 type="button"
                                                 onClick={addSkillOffered}
-                                                className="btn btn-primary"
+                                                className="btn btn-add"
                                             >
                                                 Add
                                             </button>
@@ -343,24 +356,24 @@ const Profile = () => {
                         </div>
 
                         {/* Skills Wanted */}
-                        <div className="card">
+                        <div className="profile-card">
                             <div className="card-header">
-                                <h2 className="text-xl font-semibold">Skills I Want to Learn</h2>
+                                <h2 className="card-title">📚 Skills I Want to Learn</h2>
                             </div>
-                            <div className="card-body space-y-4">
+                            <div className="card-body">
                                 {/* Current Skills */}
-                                <div className="space-y-3">
+                                <div className="form-grid">
                                     {formData.skillsWanted.map((skill, index) => (
-                                        <div key={index} className="flex items-center justify-between p-3 bg-blue-50 rounded-md">
-                                            <div>
-                                                <h4 className="font-medium">{skill.name}</h4>
-                                                <p className="text-sm text-gray-600">{skill.description}</p>
-                                                <span className="skill-badge skill-badge-wanted">{skill.priority} Priority</span>
+                                        <div key={index} className="skill-item wanted">
+                                            <div className="skill-info">
+                                                <h4>{skill.name}</h4>
+                                                <p>{skill.description}</p>
+                                                <span className="skill-badge wanted">{skill.priority} Priority</span>
                                             </div>
                                             <button
                                                 type="button"
                                                 onClick={() => removeSkillWanted(index)}
-                                                className="btn btn-danger text-sm"
+                                                className="btn btn-danger"
                                             >
                                                 Remove
                                             </button>
@@ -369,9 +382,9 @@ const Profile = () => {
                                 </div>
 
                                 {/* Add New Skill */}
-                                <div className="border-t pt-4">
-                                    <h3 className="font-medium mb-3">Add New Skill</h3>
-                                    <div className="grid grid-1 md:grid-3 gap-4">
+                                <div className="add-skill-section">
+                                    <h3 className="add-skill-title">Add New Skill</h3>
+                                    <div className="form-grid form-grid-3">
                                         <div>
                                             <input
                                                 type="text"
@@ -381,7 +394,7 @@ const Profile = () => {
                                                     name: e.target.value
                                                 }))}
                                                 placeholder="Skill name"
-                                                className="input"
+                                                className="form-input"
                                             />
                                         </div>
                                         <div>
@@ -393,17 +406,18 @@ const Profile = () => {
                                                     description: e.target.value
                                                 }))}
                                                 placeholder="Why you want to learn this"
-                                                className="input"
+                                                className="form-input"
                                             />
                                         </div>
-                                        <div className="flex gap-2">
+                                        <div className="add-skill-form">
                                             <select
                                                 value={newSkillWanted.priority}
                                                 onChange={(e) => setNewSkillWanted(prev => ({
                                                     ...prev,
                                                     priority: e.target.value
                                                 }))}
-                                                className="select flex-1"
+                                                className="form-select"
+                                                style={{ flex: 1 }}
                                             >
                                                 <option value="Low">Low</option>
                                                 <option value="Medium">Medium</option>
@@ -412,7 +426,7 @@ const Profile = () => {
                                             <button
                                                 type="button"
                                                 onClick={addSkillWanted}
-                                                className="btn btn-primary"
+                                                className="btn btn-add"
                                             >
                                                 Add
                                             </button>
@@ -423,37 +437,37 @@ const Profile = () => {
                         </div>
 
                         {/* Availability & Settings */}
-                        <div className="card">
+                        <div className="profile-card">
                             <div className="card-header">
-                                <h2 className="text-xl font-semibold">Availability & Settings</h2>
+                                <h2 className="card-title">⏰ Availability & Settings</h2>
                             </div>
-                            <div className="card-body space-y-4">
+                            <div className="card-body">
                                 <div>
                                     <label className="form-label">When are you available for skill swaps?</label>
-                                    <div className="grid grid-1 sm:grid-2 md:grid-3 gap-2 mt-2">
+                                    <div className="availability-grid">
                                         {availabilityOptions.map((option) => (
-                                            <label key={option} className="flex items-center space-x-2 cursor-pointer">
+                                            <label key={option} className="availability-option">
                                                 <input
                                                     type="checkbox"
                                                     checked={formData.availability.includes(option)}
                                                     onChange={() => handleAvailabilityChange(option)}
-                                                    className="rounded"
+                                                    className="availability-checkbox"
                                                 />
-                                                <span className="text-sm">{option}</span>
+                                                <span className="availability-label">{option}</span>
                                             </label>
                                         ))}
                                     </div>
                                 </div>
 
-                                <div className="flex items-center space-x-2">
+                                <div className="settings-option">
                                     <input
                                         type="checkbox"
                                         name="isProfilePublic"
                                         checked={formData.isProfilePublic}
                                         onChange={handleInputChange}
-                                        className="rounded"
+                                        className="settings-checkbox"
                                     />
-                                    <label className="form-label mb-0">
+                                    <label className="settings-label">
                                         Make my profile public (others can find and contact me)
                                     </label>
                                 </div>
@@ -461,23 +475,16 @@ const Profile = () => {
                         </div>
 
                         {/* Save Button */}
-                        <div className="flex justify-end space-x-4">
+                        <div className="action-buttons">
                             <Link to="/dashboard" className="btn btn-outline">
                                 Cancel
                             </Link>
                             <button
                                 type="submit"
                                 disabled={saving}
-                                className="btn btn-primary"
+                                className={`btn btn-primary ${saving ? 'btn-loading' : ''}`}
                             >
-                                {saving ? (
-                                    <div className="flex items-center">
-                                        <div className="spinner mr-2"></div>
-                                        Saving...
-                                    </div>
-                                ) : (
-                                    'Save Profile'
-                                )}
+                                {saving ? 'Saving...' : '💾 Save Profile'}
                             </button>
                         </div>
                     </form>
