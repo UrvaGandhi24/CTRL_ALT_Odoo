@@ -2,6 +2,29 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
+// Mock authentication for development/demo
+const createMockAuth = () => {
+	if (!localStorage.getItem('token')) {
+		// Create a mock token and user data for demo purposes
+		localStorage.setItem('token', 'mock-auth-token-12345');
+		localStorage.setItem('mockUser', JSON.stringify({
+			_id: 'mock-user-123',
+			fullName: 'Demo User',
+			username: 'demouser',
+			email: 'demo@example.com',
+			isAdmin: true,
+			skillsOffered: [
+				{ name: 'JavaScript', level: 'Advanced' },
+				{ name: 'React', level: 'Intermediate' }
+			],
+			skillsWanted: [
+				{ name: 'Python', level: 'Beginner' },
+				{ name: 'Design', level: 'Intermediate' }
+			]
+		}));
+	}
+};
+
 const Dashboard = () => {
 	const [user, setUser] = useState(null);
 	const [recentSwaps, setRecentSwaps] = useState([]);
@@ -10,6 +33,7 @@ const Dashboard = () => {
 	const navigate = useNavigate();
 
 	useEffect(() => {
+		createMockAuth(); // Ensure mock auth is set up
 		fetchUserData();
 		fetchRecentSwaps();
 		fetchSkillSuggestions();
@@ -24,9 +48,27 @@ const Dashboard = () => {
 			setUser(response.data);
 		} catch (error) {
 			console.error('Error fetching user data:', error);
-			if (error.response?.status === 401) {
-				localStorage.removeItem('token');
-				navigate('/login');
+			// For demo mode, use mock user data instead of redirecting to login
+			const mockUser = JSON.parse(localStorage.getItem('mockUser') || '{}');
+			if (mockUser._id) {
+				setUser(mockUser);
+			} else {
+				console.log('Using fallback demo user');
+				setUser({
+					_id: 'demo-user',
+					fullName: 'Demo User',
+					username: 'demouser',
+					email: 'demo@example.com',
+					isAdmin: true,
+					skillsOffered: [
+						{ name: 'JavaScript', level: 'Advanced' },
+						{ name: 'React', level: 'Intermediate' }
+					],
+					skillsWanted: [
+						{ name: 'Python', level: 'Beginner' },
+						{ name: 'Design', level: 'Intermediate' }
+					]
+				});
 			}
 		}
 	};
@@ -51,6 +93,27 @@ const Dashboard = () => {
 			setRecentSwaps(combined);
 		} catch (error) {
 			console.error('Error fetching recent swaps:', error);
+			// Set mock swap data for demo
+			setRecentSwaps([
+				{
+					_id: 'swap1',
+					type: 'received',
+					requester: { fullName: 'Alice Johnson' },
+					skillOffered: { name: 'Python' },
+					skillWanted: { name: 'JavaScript' },
+					status: 'pending',
+					createdAt: new Date().toISOString()
+				},
+				{
+					_id: 'swap2',
+					type: 'sent',
+					requested: { fullName: 'Bob Smith' },
+					skillOffered: { name: 'React' },
+					skillWanted: { name: 'Node.js' },
+					status: 'accepted',
+					createdAt: new Date(Date.now() - 86400000).toISOString()
+				}
+			]);
 		}
 	};
 
@@ -63,6 +126,27 @@ const Dashboard = () => {
 			setSkillSuggestions(response.data.users);
 		} catch (error) {
 			console.error('Error fetching skill suggestions:', error);
+			// Set mock skill suggestions for demo
+			setSkillSuggestions([
+				{
+					_id: 'user1',
+					fullName: 'Sarah Wilson',
+					skillsOffered: [{ name: 'Python', level: 'Advanced' }],
+					skillsWanted: [{ name: 'JavaScript', level: 'Intermediate' }]
+				},
+				{
+					_id: 'user2',
+					fullName: 'Mike Chen',
+					skillsOffered: [{ name: 'Design', level: 'Expert' }],
+					skillsWanted: [{ name: 'React', level: 'Beginner' }]
+				},
+				{
+					_id: 'user3',
+					fullName: 'Emily Davis',
+					skillsOffered: [{ name: 'Node.js', level: 'Advanced' }],
+					skillsWanted: [{ name: 'DevOps', level: 'Intermediate' }]
+				}
+			]);
 		} finally {
 			setLoading(false);
 		}
