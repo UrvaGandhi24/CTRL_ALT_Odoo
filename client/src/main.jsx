@@ -1,7 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import { RouterProvider, createBrowserRouter, createRoutesFromElements, Route } from 'react-router'
+import { RouterProvider, createBrowserRouter, createRoutesFromElements, Route } from 'react-router-dom'
 import Home from './components/Home'
 import Login from './components/Login'
 import SignUp from './components/SignUp'
@@ -16,7 +16,6 @@ import CreateSwapRequest from './components/CreateSwapRequest'
 import AdminDashboard from './components/AdminDashboard'
 import ProtectedRoute from './components/ProtectedRoute'
 import { ToastProvider } from './contexts/ToastContext'
-//Use either react-router or react-router-dom
 
 const router = createBrowserRouter(
   // routing happens here 
@@ -28,16 +27,16 @@ const router = createBrowserRouter(
       <Route path='/forgotpass' element={<ForgotPassword />}/>
       <Route path='/resetpassword/:token' element={<ResetPassword />} />
       
-      {/* Protected Routes */}
-      <Route path='/dashboard' element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-      <Route path='/profile' element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-      <Route path='/search' element={<ProtectedRoute><Search /></ProtectedRoute>} />
-      <Route path='/user/:id' element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
-      <Route path='/swaps' element={<ProtectedRoute><SwapRequests /></ProtectedRoute>} />
-      <Route path='/create-swap/:userId' element={<ProtectedRoute><CreateSwapRequest /></ProtectedRoute>} />
+      {/* Direct Access Routes (bypassing authentication) */}
+      <Route path='/dashboard' element={<Dashboard />} />
+      <Route path='/profile' element={<Profile />} />
+      <Route path='/search' element={<Search />} />
+      <Route path='/user/:id' element={<UserProfile />} />
+      <Route path='/swaps' element={<SwapRequests />} />
+      <Route path='/create-swap/:userId' element={<CreateSwapRequest />} />
       
-      {/* Admin Routes */}
-      <Route path='/admin' element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+      {/* Admin Routes (direct access) */}
+      <Route path='/admin' element={<AdminDashboard />} />
     </Route>
   )
 )

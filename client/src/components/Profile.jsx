@@ -2,6 +2,32 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
+// Mock authentication for development/demo
+const createMockAuth = () => {
+	if (!localStorage.getItem('token')) {
+		localStorage.setItem('token', 'mock-auth-token-12345');
+		localStorage.setItem('mockUser', JSON.stringify({
+			_id: 'mock-user-123',
+			fullName: 'Demo User',
+			username: 'demouser',
+			email: 'demo@example.com',
+			location: 'New York, NY',
+			bio: 'I am a passionate developer looking to exchange skills with others.',
+			isAdmin: true,
+			skillsOffered: [
+				{ name: 'JavaScript', description: 'Frontend development', level: 'Advanced' },
+				{ name: 'React', description: 'Modern UI development', level: 'Intermediate' }
+			],
+			skillsWanted: [
+				{ name: 'Python', description: 'Backend development', priority: 'High' },
+				{ name: 'Design', description: 'UI/UX design skills', priority: 'Medium' }
+			],
+			availability: ['Weekends Morning', 'Weekdays Evening'],
+			isProfilePublic: true
+		}));
+	}
+};
+
 const Profile = () => {
     const [user, setUser] = useState(null);
     const [formData, setFormData] = useState({
@@ -29,6 +55,7 @@ const Profile = () => {
     ];
 
     useEffect(() => {
+        createMockAuth(); // Ensure mock auth is set up
         fetchUserProfile();
     }, []);
 
@@ -51,9 +78,19 @@ const Profile = () => {
             });
         } catch (error) {
             console.error('Error fetching profile:', error);
-            if (error.response?.status === 401) {
-                localStorage.removeItem('token');
-                navigate('/login');
+            // For demo mode, use mock user data
+            const mockUser = JSON.parse(localStorage.getItem('mockUser') || '{}');
+            if (mockUser._id) {
+                setUser(mockUser);
+                setFormData({
+                    fullName: mockUser.fullName || '',
+                    location: mockUser.location || '',
+                    bio: mockUser.bio || '',
+                    skillsOffered: mockUser.skillsOffered || [],
+                    skillsWanted: mockUser.skillsWanted || [],
+                    availability: mockUser.availability || [],
+                    isProfilePublic: mockUser.isProfilePublic !== undefined ? mockUser.isProfilePublic : true
+                });
             }
         } finally {
             setLoading(false);
