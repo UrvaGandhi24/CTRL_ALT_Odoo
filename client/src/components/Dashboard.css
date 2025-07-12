@@ -123,6 +123,25 @@
   font-weight: 600;
 }
 
+/* Active Tab Styles for SwapRequests */
+.active-tab {
+  transform: translateY(-3px) !important;
+  box-shadow: 0 30px 60px rgba(102, 126, 234, 0.2) !important;
+  border: 2px solid rgba(102, 126, 234, 0.3) !important;
+}
+
+.active-tab .stat-number {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+}
+
+.active-tab .stat-label {
+  color: #667eea !important;
+  font-weight: 600 !important;
+}
+
 /* Main Content */
 .dashboard-main {
   position: relative;
@@ -373,13 +392,15 @@
 }
 
 .skill-tag.offering {
-  background: #dbeafe;
-  color: #1e40af;
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
+  border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
 .skill-tag.wanting {
-  background: #d1fae5;
-  color: #065f46;
+  background: rgba(34, 197, 94, 0.1);
+  color: #16a34a;
+  border: 1px solid rgba(34, 197, 94, 0.2);
 }
 
 .skill-tag svg {
