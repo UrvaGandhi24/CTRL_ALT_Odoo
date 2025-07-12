@@ -134,4 +134,14 @@ Run the status check script:
 
 ---
 
+Mock ID
+Admin: {
+    email:admin@example.com
+    pass:StrongPassword123
+}
+user:{
+    email:john@example.com
+    pass:Doe@123
+}
+
 **Happy Skill Swapping! 🎓✨**
