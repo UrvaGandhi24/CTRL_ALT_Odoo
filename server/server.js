@@ -1,15 +1,11 @@
-// console.log("Om Ganeshay Namah")
-// app.get("/", (req, res) => {
-//     res.send("Om Ganeshay Namah");
-// });
 import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
 import authRoutes from '../server/routes/auth.routes.js'
-import userRoutes from '../server/routes/user.routes.js'
-import swapRoutes from '../server/routes/swap.routes.js'
-import adminRoutes from '../server/routes/admin.routes.js'
+// import userRoutes from '../server/routes/user.routes.js'
+// import swapRoutes from '../server/routes/swap.routes.js'
+// import adminRoutes from '../server/routes/admin.routes.js'
 
 dotenv.config();
 
@@ -23,11 +19,12 @@ mongoose.connect(MONGO_URI).then(() => { console.log("MongoDB Connected") }).cat
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/swaps', swapRoutes);
-app.use('/api/admin', adminRoutes);
+// app.use('/api/users', userRoutes);
+// app.use('/api/swaps', swapRoutes);
+// app.use('/api/admin', adminRoutes);
 
 // Health check
+
 app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });

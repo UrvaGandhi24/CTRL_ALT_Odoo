@@ -1,3 +1,7 @@
+import User from "../models/user.models.js"; //User.find(), User.create(), User.findById(), User.deleteOne()
+import bcrypt from 'bcryptjs'
+import jwt from 'jsonwebtoken'
+
 export const signup = async (req, res) => {
 	try {
 		const { username, email, password, fullName } = req.body;
