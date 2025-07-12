@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import './SignUp.css';
 
 function SignUp() {
 	const [formData, setFormData] = useState({
@@ -12,7 +13,36 @@ function SignUp() {
 	});
 	const [loading, setLoading] = useState(false);
 	const [errors, setErrors] = useState({});
+	const [showPassword, setShowPassword] = useState(false);
+	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+	const [focusedField, setFocusedField] = useState(null);
+	const [message, setMessage] = useState(null);
+	const [error, setError] = useState(null);
 	const navigate = useNavigate();
+
+	const getPasswordStrength = (password) => {
+		let score = 0;
+		if (password.length >= 6) score++;
+		if (password.length >= 8) score++;
+		if (/[A-Z]/.test(password)) score++;
+		if (/[0-9]/.test(password)) score++;
+		if (/[^A-Za-z0-9]/.test(password)) score++;
+		return score;
+	};
+
+	const getStrengthClass = (strength) => {
+		if (strength <= 1) return 'strength-weak';
+		if (strength <= 2) return 'strength-fair';
+		if (strength <= 3) return 'strength-good';
+		return 'strength-strong';
+	};
+
+	const getStrengthText = (strength) => {
+		if (strength <= 1) return 'Weak';
+		if (strength <= 2) return 'Fair';
+		if (strength <= 3) return 'Good';
+		return 'Strong';
+	};
 
 	const handleChange = (e) => {
 		const { name, value } = e.target;
@@ -26,6 +56,10 @@ function SignUp() {
 				...prev,
 				[name]: ""
 			}));
+		}
+		// Clear general error
+		if (error) {
+			setError(null);
 		}
 	};
 
@@ -72,6 +106,8 @@ function SignUp() {
 		}
 
 		setLoading(true);
+		setError(null);
+		setMessage(null);
 
 		try {
 			const response = await axios.post("http://localhost:3334/api/auth/signup", {
@@ -82,133 +118,368 @@ function SignUp() {
 			});
 
 			console.log("User created!", response.data);
-			alert("Account created successfully! Please login to continue.");
-			navigate("/login");
+			setMessage("Account created successfully! Redirecting to login...");
+			setTimeout(() => {
+				navigate("/login");
+			}, 2000);
 		} catch (err) {
 			console.error("Signup error:", err);
 			if (err.response && err.response.data && err.response.data.message) {
-				alert(err.response.data.message);
+				setError(err.response.data.message);
 			} else {
-				alert("Something went wrong. Please try again.");
+				setError("Something went wrong. Please try again.");
 			}
 		} finally {
 			setLoading(false);
 		}
 	};
 
+	const passwordStrength = getPasswordStrength(formData.password);
+
 	return (
-		<div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-			<div className="max-w-md w-full space-y-8">
-				<div>
-					<h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
-						Join Skill Swap Platform
-					</h2>
-					<p className="mt-2 text-center text-sm text-gray-600">
-						Create your account to start swapping skills
-					</p>
-				</div>
-				<form className="mt-8 space-y-6" onSubmit={FormSubmit}>
-					<div className="space-y-4">
-						<div className="form-group">
-							<label className="form-label">Full Name</label>
-							<input
-								type="text"
-								name="fullName"
-								value={formData.fullName}
-								onChange={handleChange}
-								placeholder="Enter your full name"
-								className="input"
-								required
-							/>
-							{errors.fullName && <p className="form-error">{errors.fullName}</p>}
-						</div>
+		<div className="signup-container">
+			{/* Background Animation */}
+			<div className="signup-bg">
+				<div className="floating-shape shape-1"></div>
+				<div className="floating-shape shape-2"></div>
+				<div className="floating-shape shape-3"></div>
+				<div className="floating-shape shape-4"></div>
+			</div>
 
-						<div className="form-group">
-							<label className="form-label">Username</label>
-							<input
-								type="text"
-								name="username"
-								value={formData.username}
-								onChange={handleChange}
-								placeholder="Choose a username"
-								className="input"
-								required
-							/>
-							{errors.username && <p className="form-error">{errors.username}</p>}
+			<div className="signup-content">
+				<div className="signup-card">
+					{/* Header */}
+					<div className="signup-header">
+						<div className="signup-icon">
+							<svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+								<path d="M16 21V19C16 17.9391 15.5786 16.9217 14.8284 16.1716C14.0783 15.4214 13.0609 15 12 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="url(#gradient)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+								<circle cx="8.5" cy="7" r="4" stroke="url(#gradient)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+								<path d="M20 8V14" stroke="url(#gradient)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+								<path d="M23 11H17" stroke="url(#gradient)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+								<defs>
+									<linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+										<stop offset="0%" stopColor="#667eea" />
+										<stop offset="100%" stopColor="#764ba2" />
+									</linearGradient>
+								</defs>
+							</svg>
 						</div>
+						<h1 className="signup-title">Join SkillSwap</h1>
+						<p className="signup-subtitle">
+							Create your account and start connecting with talented individuals around the world.
+						</p>
+					</div>
 
-						<div className="form-group">
-							<label className="form-label">Email</label>
-							<input
-								type="email"
-								name="email"
-								value={formData.email}
-								onChange={handleChange}
-								placeholder="Enter your email"
-								className="input"
-								required
-							/>
-							{errors.email && <p className="form-error">{errors.email}</p>}
+					{/* Error Message */}
+					{error && (
+						<div className="alert alert-error">
+							<svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+								<circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+								<line x1="15" y1="9" x2="9" y2="15" stroke="currentColor" strokeWidth="2"/>
+								<line x1="9" y1="9" x2="15" y2="15" stroke="currentColor" strokeWidth="2"/>
+							</svg>
+							{error}
 						</div>
+					)}
 
-						<div className="form-group">
-							<label className="form-label">Password</label>
-							<input
-								type="password"
-								name="password"
-								value={formData.password}
-								onChange={handleChange}
-								placeholder="Create a password"
-								className="input"
-								required
-							/>
-							{errors.password && <p className="form-error">{errors.password}</p>}
+					{/* Success Message */}
+					{message && (
+						<div className="alert alert-success">
+							<svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+								<circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+								<path d="M9 12L11 14L15 10" stroke="currentColor" strokeWidth="2"/>
+							</svg>
+							{message}
 						</div>
+					)}
 
-						<div className="form-group">
-							<label className="form-label">Confirm Password</label>
-							<input
-								type="password"
-								name="confirmPassword"
-								value={formData.confirmPassword}
-								onChange={handleChange}
-								placeholder="Confirm your password"
-								className="input"
-								required
-							/>
-							{errors.confirmPassword && <p className="form-error">{errors.confirmPassword}</p>}
+					{/* Features List */}
+					<div className="features-list">
+						<h4>What you'll get:</h4>
+						<div className="feature-item">
+							<svg viewBox="0 0 24 24" fill="none">
+								<path d="M9 12L11 14L15 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+								<circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+							</svg>
+							Connect with skilled professionals worldwide
+						</div>
+						<div className="feature-item">
+							<svg viewBox="0 0 24 24" fill="none">
+								<path d="M9 12L11 14L15 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+								<circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+							</svg>
+							Exchange skills and learn new ones
+						</div>
+						<div className="feature-item">
+							<svg viewBox="0 0 24 24" fill="none">
+								<path d="M9 12L11 14L15 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+								<circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+							</svg>
+							Build your professional network
 						</div>
 					</div>
 
-					<div>
+					{/* Form */}
+					<form className="signup-form" onSubmit={FormSubmit}>
+						{/* First Row - Full Name and Username */}
+						<div className="form-row">
+							<div className="form-group">
+								<label 
+									className={`form-label ${focusedField === 'fullName' || formData.fullName ? 'focused' : ''}`}
+								>
+									Full Name
+								</label>
+								<div className="input-wrapper">
+									<svg className="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
+										<path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" strokeWidth="2"/>
+										<circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="2"/>
+									</svg>
+									<input
+										type="text"
+										name="fullName"
+										value={formData.fullName}
+										onChange={handleChange}
+										onFocus={() => setFocusedField('fullName')}
+										onBlur={() => setFocusedField(null)}
+										placeholder="Enter your full name"
+										className={`form-input ${errors.fullName ? 'error' : ''} ${formData.fullName ? 'filled' : ''}`}
+										required
+									/>
+								</div>
+								{errors.fullName && (
+									<p className="field-error">
+										<svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+											<circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+											<line x1="15" y1="9" x2="9" y2="15" stroke="currentColor" strokeWidth="2"/>
+											<line x1="9" y1="9" x2="15" y2="15" stroke="currentColor" strokeWidth="2"/>
+										</svg>
+										{errors.fullName}
+									</p>
+								)}
+							</div>
+
+							<div className="form-group">
+								<label 
+									className={`form-label ${focusedField === 'username' || formData.username ? 'focused' : ''}`}
+								>
+									Username
+								</label>
+								<div className="input-wrapper">
+									<svg className="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
+										<path d="M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z" stroke="currentColor" strokeWidth="2"/>
+										<path d="M12 14C8.13401 14 5 17.134 5 21H19C19 17.134 15.866 14 12 14Z" stroke="currentColor" strokeWidth="2"/>
+									</svg>
+									<input
+										type="text"
+										name="username"
+										value={formData.username}
+										onChange={handleChange}
+										onFocus={() => setFocusedField('username')}
+										onBlur={() => setFocusedField(null)}
+										placeholder="Choose a username"
+										className={`form-input ${errors.username ? 'error' : ''} ${formData.username ? 'filled' : ''}`}
+										required
+									/>
+								</div>
+								{errors.username && (
+									<p className="field-error">
+										<svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+											<circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+											<line x1="15" y1="9" x2="9" y2="15" stroke="currentColor" strokeWidth="2"/>
+											<line x1="9" y1="9" x2="15" y2="15" stroke="currentColor" strokeWidth="2"/>
+										</svg>
+										{errors.username}
+									</p>
+								)}
+							</div>
+						</div>
+
+						{/* Email Field */}
+						<div className="form-group">
+							<label 
+								className={`form-label ${focusedField === 'email' || formData.email ? 'focused' : ''}`}
+							>
+								Email Address
+							</label>
+							<div className="input-wrapper">
+								<svg className="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
+									<path d="M4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6C2 4.9 2.9 4 4 4Z" stroke="currentColor" strokeWidth="2"/>
+									<polyline points="22,6 12,13 2,6" stroke="currentColor" strokeWidth="2"/>
+								</svg>
+								<input
+									type="email"
+									name="email"
+									value={formData.email}
+									onChange={handleChange}
+									onFocus={() => setFocusedField('email')}
+									onBlur={() => setFocusedField(null)}
+									placeholder="Enter your email"
+									className={`form-input ${errors.email ? 'error' : ''} ${formData.email ? 'filled' : ''}`}
+									required
+								/>
+							</div>
+							{errors.email && (
+								<p className="field-error">
+									<svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+										<circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+										<line x1="15" y1="9" x2="9" y2="15" stroke="currentColor" strokeWidth="2"/>
+										<line x1="9" y1="9" x2="15" y2="15" stroke="currentColor" strokeWidth="2"/>
+									</svg>
+									{errors.email}
+								</p>
+							)}
+						</div>
+
+						{/* Password Field */}
+						<div className="form-group">
+							<label 
+								className={`form-label ${focusedField === 'password' || formData.password ? 'focused' : ''}`}
+							>
+								Password
+							</label>
+							<div className="input-wrapper">
+								<svg className="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
+									<rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="currentColor" strokeWidth="2"/>
+									<circle cx="12" cy="16" r="1" fill="currentColor"/>
+									<path d="M7 11V7A5 5 0 0 1 17 7V11" stroke="currentColor" strokeWidth="2"/>
+								</svg>
+								<input
+									type={showPassword ? "text" : "password"}
+									name="password"
+									value={formData.password}
+									onChange={handleChange}
+									onFocus={() => setFocusedField('password')}
+									onBlur={() => setFocusedField(null)}
+									placeholder="Create a password"
+									className={`form-input ${errors.password ? 'error' : ''} ${formData.password ? 'filled' : ''}`}
+									required
+								/>
+								<button
+									type="button"
+									className="password-toggle"
+									onClick={() => setShowPassword(!showPassword)}
+								>
+									{showPassword ? (
+										<svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+											<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20C7 20 2.73 16.39 1 12A18.45 18.45 0 0 1 5.06 5.06L17.94 17.94Z" stroke="currentColor" strokeWidth="2"/>
+											<path d="M9.9 4.24A9.12 9.12 0 0 1 12 4C17 4 21.27 7.61 23 12A18.5 18.5 0 0 1 19.42 16.42" stroke="currentColor" strokeWidth="2"/>
+											<path d="M1 1L23 23" stroke="currentColor" strokeWidth="2"/>
+											<path d="M10.5 15.5A3 3 0 0 0 15.5 10.5" stroke="currentColor" strokeWidth="2"/>
+										</svg>
+									) : (
+										<svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+											<path d="M1 12S5 4 12 4S23 12 23 12S19 20 12 20S1 12 1 12Z" stroke="currentColor" strokeWidth="2"/>
+											<circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2"/>
+										</svg>
+									)}
+								</button>
+							</div>
+							{formData.password && (
+								<div className="password-strength">
+									<div>Password strength: <strong>{getStrengthText(passwordStrength)}</strong></div>
+									<div className="strength-bar">
+										<div className={`strength-fill ${getStrengthClass(passwordStrength)}`}></div>
+									</div>
+								</div>
+							)}
+							{errors.password && (
+								<p className="field-error">
+									<svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+										<circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+										<line x1="15" y1="9" x2="9" y2="15" stroke="currentColor" strokeWidth="2"/>
+										<line x1="9" y1="9" x2="15" y2="15" stroke="currentColor" strokeWidth="2"/>
+									</svg>
+									{errors.password}
+								</p>
+							)}
+						</div>
+
+						{/* Confirm Password Field */}
+						<div className="form-group">
+							<label 
+								className={`form-label ${focusedField === 'confirmPassword' || formData.confirmPassword ? 'focused' : ''}`}
+							>
+								Confirm Password
+							</label>
+							<div className="input-wrapper">
+								<svg className="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
+									<rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="currentColor" strokeWidth="2"/>
+									<circle cx="12" cy="16" r="1" fill="currentColor"/>
+									<path d="M7 11V7A5 5 0 0 1 17 7V11" stroke="currentColor" strokeWidth="2"/>
+								</svg>
+								<input
+									type={showConfirmPassword ? "text" : "password"}
+									name="confirmPassword"
+									value={formData.confirmPassword}
+									onChange={handleChange}
+									onFocus={() => setFocusedField('confirmPassword')}
+									onBlur={() => setFocusedField(null)}
+									placeholder="Confirm your password"
+									className={`form-input ${errors.confirmPassword ? 'error' : ''} ${formData.confirmPassword ? 'filled' : ''}`}
+									required
+								/>
+								<button
+									type="button"
+									className="password-toggle"
+									onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+								>
+									{showConfirmPassword ? (
+										<svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+											<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20C7 20 2.73 16.39 1 12A18.45 18.45 0 0 1 5.06 5.06L17.94 17.94Z" stroke="currentColor" strokeWidth="2"/>
+											<path d="M9.9 4.24A9.12 9.12 0 0 1 12 4C17 4 21.27 7.61 23 12A18.5 18.5 0 0 1 19.42 16.42" stroke="currentColor" strokeWidth="2"/>
+											<path d="M1 1L23 23" stroke="currentColor" strokeWidth="2"/>
+											<path d="M10.5 15.5A3 3 0 0 0 15.5 10.5" stroke="currentColor" strokeWidth="2"/>
+										</svg>
+									) : (
+										<svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+											<path d="M1 12S5 4 12 4S23 12 23 12S19 20 12 20S1 12 1 12Z" stroke="currentColor" strokeWidth="2"/>
+											<circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2"/>
+										</svg>
+									)}
+								</button>
+							</div>
+							{errors.confirmPassword && (
+								<p className="field-error">
+									<svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+										<circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+										<line x1="15" y1="9" x2="9" y2="15" stroke="currentColor" strokeWidth="2"/>
+										<line x1="9" y1="9" x2="15" y2="15" stroke="currentColor" strokeWidth="2"/>
+									</svg>
+									{errors.confirmPassword}
+								</p>
+							)}
+						</div>
+
 						<button
 							type="submit"
 							disabled={loading}
-							className="w-full btn btn-primary py-3 text-lg"
+							className={`submit-btn ${loading ? 'loading' : ''}`}
 						>
 							{loading ? (
-								<div className="flex items-center justify-center">
-									<div className="spinner mr-2"></div>
-									Creating Account...
-								</div>
+								<>
+									<div className="spinner"></div>
+									<span>Creating Account...</span>
+								</>
 							) : (
-								"Create Account"
+								<>
+									<span>Create Account</span>
+									<svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+										<path d="M5 12H19" stroke="currentColor" strokeWidth="2"/>
+										<path d="M12 5L19 12L12 19" stroke="currentColor" strokeWidth="2"/>
+									</svg>
+								</>
 							)}
 						</button>
-					</div>
+					</form>
 
-					<div className="text-center">
-						<p className="text-sm text-gray-600">
-							Already have an account?{" "}
-							<Link
-								to="/login"
-								className="font-medium text-blue-600 hover:text-blue-500"
-							>
-								Sign in here
-							</Link>
-						</p>
+					{/* Footer */}
+					<div className="signup-footer">
+						<div className="login-link">
+							<span>Already have an account? </span>
+							<Link to="/login">Sign in here</Link>
+						</div>
 					</div>
-				</form>
+				</div>
 			</div>
 		</div>
 	);
