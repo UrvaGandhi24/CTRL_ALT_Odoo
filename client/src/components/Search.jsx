@@ -1,0 +1,306 @@
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+
+const Search = () => {
+    const [users, setUsers] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [filters, setFilters] = useState({
+        skill: '',
+        location: '',
+        availability: ''
+    });
+    const [pagination, setPagination] = useState({
+        page: 1,
+        limit: 12,
+        total: 0,
+        pages: 0
+    });
+    const navigate = useNavigate();
+
+    const availabilityOptions = [
+        'Weekdays Morning',
+        'Weekdays Afternoon', 
+        'Weekdays Evening',
+        'Weekends Morning',
+        'Weekends Afternoon',
+        'Weekends Evening'
+    ];
+
+    useEffect(() => {
+        searchUsers();
+    }, [pagination.page]);
+
+    useEffect(() => {
+        if (pagination.page === 1) {
+            searchUsers();
+        } else {
+            setPagination(prev => ({ ...prev, page: 1 }));
+        }
+    }, [filters]);
+
+    const searchUsers = async () => {
+        setLoading(true);
+        try {
+            const token = localStorage.getItem('token');
+            const params = new URLSearchParams({
+                page: pagination.page.toString(),
+                limit: pagination.limit.toString(),
+                ...Object.fromEntries(Object.entries(filters).filter(([_, v]) => v))
+            });
+
+            const response = await axios.get(`http://localhost:3334/api/users/search?${params}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            setUsers(response.data.users);
+            setPagination(prev => ({
+                ...prev,
+                total: response.data.pagination.total,
+                pages: response.data.pagination.pages
+            }));
+        } catch (error) {
+            console.error('Error searching users:', error);
+            if (error.response?.status === 401) {
+                localStorage.removeItem('token');
+                navigate('/login');
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleFilterChange = (e) => {
+        const { name, value } = e.target;
+        setFilters(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    const clearFilters = () => {
+        setFilters({
+            skill: '',
+            location: '',
+            availability: ''
+        });
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        navigate('/login');
+    };
+
+    return (
+        <div className="min-h-screen bg-gray-50">
+            {/* Navigation */}
+            <nav className="nav">
+                <div className="container nav-container">
+                    <Link to="/dashboard" className="nav-brand">
+                        Skill Swap Platform
+                    </Link>
+                    <div className="nav-links">
+                        <Link to="/dashboard" className="nav-item">Dashboard</Link>
+                        <Link to="/search" className="nav-item active">Browse Skills</Link>
+                        <Link to="/swaps" className="nav-item">My Swaps</Link>
+                        <Link to="/profile" className="nav-item">Profile</Link>
+                        <button onClick={handleLogout} className="nav-item">Logout</button>
+                    </div>
+                </div>
+            </nav>
+
+            {/* Main Content */}
+            <div className="container py-8">
+                <div className="mb-8">
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Browse Skills</h1>
+                    <p className="text-gray-600">Find people with skills you want to learn</p>
+                </div>
+
+                {/* Filters */}
+                <div className="card mb-8">
+                    <div className="card-body">
+                        <div className="grid grid-1 md:grid-4 gap-4">
+                            <div className="form-group">
+                                <label className="form-label">Search Skills</label>
+                                <input
+                                    type="text"
+                                    name="skill"
+                                    value={filters.skill}
+                                    onChange={handleFilterChange}
+                                    placeholder="e.g., JavaScript, Cooking, Guitar"
+                                    className="input"
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Location</label>
+                                <input
+                                    type="text"
+                                    name="location"
+                                    value={filters.location}
+                                    onChange={handleFilterChange}
+                                    placeholder="e.g., New York, Remote"
+                                    className="input"
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Availability</label>
+                                <select
+                                    name="availability"
+                                    value={filters.availability}
+                                    onChange={handleFilterChange}
+                                    className="select"
+                                >
+                                    <option value="">Any time</option>
+                                    {availabilityOptions.map(option => (
+                                        <option key={option} value={option}>{option}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">&nbsp;</label>
+                                <button
+                                    onClick={clearFilters}
+                                    className="btn btn-outline w-full"
+                                >
+                                    Clear Filters
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Results */}
+                {loading ? (
+                    <div className="text-center py-12">
+                        <div className="spinner mx-auto mb-4"></div>
+                        <p>Searching for users...</p>
+                    </div>
+                ) : users.length > 0 ? (
+                    <>
+                        <div className="mb-4 text-sm text-gray-600">
+                            Found {pagination.total} user{pagination.total !== 1 ? 's' : ''}
+                        </div>
+                        <div className="grid grid-1 md:grid-2 lg:grid-3 gap-6 mb-8">
+                            {users.map((user) => (
+                                <div key={user._id} className="card hover:shadow-lg transition-shadow">
+                                    <div className="card-body">
+                                        <div className="flex items-center space-x-3 mb-4">
+                                            <img
+                                                src={user.profilePhoto || '/default-avatar.png'}
+                                                alt={user.fullName}
+                                                className="profile-photo"
+                                                onError={(e) => {
+                                                    e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiNFNUU3RUIiLz4KPGNpcmNsZSBjeD0iMjAiIGN5PSIxNSIgcj0iNiIgZmlsbD0iIzlDQTNBRiIvPgo8cGF0aCBkPSJNMzAgMzJDMzAgMjYuNDc3MSAyNS41MjI5IDIyIDIwIDIyQzE0LjQ3NzEgMjIgMTAgMjYuNDc3MSAxMCAzMkgzMFoiIGZpbGw9IiM5Q0EzQUYiLz4KPC9zdmc+';
+                                                }}
+                                            />
+                                            <div className="flex-1">
+                                                <h3 className="font-semibold text-gray-900">{user.fullName}</h3>
+                                                <div className="flex items-center text-sm text-gray-500">
+                                                    {user.location && (
+                                                        <span>{user.location}</span>
+                                                    )}
+                                                    {user.averageRating > 0 && (
+                                                        <span className="ml-2 flex items-center">
+                                                            <span className="text-yellow-400 mr-1">★</span>
+                                                            {user.averageRating.toFixed(1)}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {user.bio && (
+                                            <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                                                {user.bio}
+                                            </p>
+                                        )}
+
+                                        <div className="mb-3">
+                                            <h4 className="font-medium text-sm mb-2">Skills Offered:</h4>
+                                            <div className="flex flex-wrap gap-1">
+                                                {user.skillsOffered?.slice(0, 3).map((skill, index) => (
+                                                    <span key={index} className="skill-badge skill-badge-offered">
+                                                        {skill.name}
+                                                    </span>
+                                                ))}
+                                                {user.skillsOffered?.length > 3 && (
+                                                    <span className="skill-badge skill-badge-offered">
+                                                        +{user.skillsOffered.length - 3} more
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {user.skillsWanted?.length > 0 && (
+                                            <div className="mb-4">
+                                                <h4 className="font-medium text-sm mb-2">Looking for:</h4>
+                                                <div className="flex flex-wrap gap-1">
+                                                    {user.skillsWanted?.slice(0, 3).map((skill, index) => (
+                                                        <span key={index} className="skill-badge skill-badge-wanted">
+                                                            {skill.name}
+                                                        </span>
+                                                    ))}
+                                                    {user.skillsWanted?.length > 3 && (
+                                                        <span className="skill-badge skill-badge-wanted">
+                                                            +{user.skillsWanted.length - 3} more
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <Link
+                                            to={`/user/${user._id}`}
+                                            className="btn btn-primary w-full"
+                                        >
+                                            View Profile & Request Swap
+                                        </Link>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Pagination */}
+                        {pagination.pages > 1 && (
+                            <div className="flex justify-center items-center space-x-4">
+                                <button
+                                    onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
+                                    disabled={pagination.page === 1}
+                                    className="btn btn-outline"
+                                >
+                                    Previous
+                                </button>
+                                <span className="text-sm text-gray-600">
+                                    Page {pagination.page} of {pagination.pages}
+                                </span>
+                                <button
+                                    onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
+                                    disabled={pagination.page === pagination.pages}
+                                    className="btn btn-outline"
+                                >
+                                    Next
+                                </button>
+                            </div>
+                        )}
+                    </>
+                ) : (
+                    <div className="text-center py-12">
+                        <div className="text-6xl mb-4">🔍</div>
+                        <h3 className="text-xl font-semibold text-gray-900 mb-2">No users found</h3>
+                        <p className="text-gray-600 mb-4">
+                            Try adjusting your search criteria or clearing filters
+                        </p>
+                        <button
+                            onClick={clearFilters}
+                            className="btn btn-primary"
+                        >
+                            Clear All Filters
+                        </button>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+export default Search;
