@@ -1,32 +1,20 @@
-import { useEffect, useState } from 'react';
+import React from 'react';
 import { Navigate } from 'react-router-dom';
+import { auth } from '../utils/auth';
 
 const ProtectedRoute = ({ children }) => {
-    const [isAuthenticated, setIsAuthenticated] = useState(null);
+  const isAuthenticated = auth.isAuthenticated();
+  const isTokenExpired = auth.isTokenExpired();
 
-    useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            // You could also verify the token with the server here
-            setIsAuthenticated(true);
-        } else {
-            setIsAuthenticated(false);
-        }
-    }, []);
-
-    if (isAuthenticated === null) {
-        // Loading state
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p>Loading...</p>
-                </div>
-            </div>
-        );
+  if (!isAuthenticated || isTokenExpired) {
+    // Clear expired token
+    if (isTokenExpired) {
+      auth.logout();
     }
+    return <Navigate to="/login" replace />;
+  }
 
-    return isAuthenticated ? children : <Navigate to="/login" replace />;
+  return children;
 };
 
 export default ProtectedRoute;

@@ -1,8 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import { RouterProvider, createBrowserRouter, createRoutesFromElements, Route } from 'react-router-dom'
-import Home from './components/Home'
+import { RouterProvider, createBrowserRouter, createRoutesFromElements, Route, Navigate } from 'react-router-dom'
 import Login from './components/Login'
 import SignUp from './components/SignUp'
 import Dashboard from './components/Dashboard'
@@ -21,22 +20,22 @@ const router = createBrowserRouter(
   // routing happens here 
   createRoutesFromElements(
     <Route>
-      <Route path='/' element={<Home />} />
+      <Route path='/' element={<Navigate to="/dashboard" replace />} />
       <Route path='/login' element={<Login />} />
       <Route path='/signup' element={<SignUp />} />
-      <Route path='/forgotpass' element={<ForgotPassword />}/>
+      <Route path='/forgotpass' element={<ForgotPassword />} />
       <Route path='/resetpassword/:token' element={<ResetPassword />} />
-      
-      {/* Direct Access Routes (bypassing authentication) */}
-      <Route path='/dashboard' element={<Dashboard />} />
-      <Route path='/profile' element={<Profile />} />
-      <Route path='/search' element={<Search />} />
-      <Route path='/user/:id' element={<UserProfile />} />
-      <Route path='/swaps' element={<SwapRequests />} />
-      <Route path='/create-swap/:userId' element={<CreateSwapRequest />} />
-      
-      {/* Admin Routes (direct access) */}
-      <Route path='/admin' element={<AdminDashboard />} />
+
+      {/* Protected Routes */}
+      <Route path='/dashboard' element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      <Route path='/profile' element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+      <Route path='/search' element={<ProtectedRoute><Search /></ProtectedRoute>} />
+      <Route path='/user/:id' element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
+      <Route path='/swaps' element={<ProtectedRoute><SwapRequests /></ProtectedRoute>} />
+      <Route path='/create-swap/:userId' element={<ProtectedRoute><CreateSwapRequest /></ProtectedRoute>} />
+
+      {/* Admin Routes */}
+      <Route path='/admin' element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
     </Route>
   )
 )
@@ -44,7 +43,7 @@ const router = createBrowserRouter(
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ToastProvider>
-      <RouterProvider router={router} /> 
+      <RouterProvider router={router} />
     </ToastProvider>
   </StrictMode>,
 )

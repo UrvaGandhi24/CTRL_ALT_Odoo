@@ -1,29 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-
-// Mock authentication for development/demo
-const createMockAuth = () => {
-	if (!localStorage.getItem('token')) {
-		// Create a mock token and user data for demo purposes
-		localStorage.setItem('token', 'mock-auth-token-12345');
-		localStorage.setItem('mockUser', JSON.stringify({
-			_id: 'mock-user-123',
-			fullName: 'Demo User',
-			username: 'demouser',
-			email: 'demo@example.com',
-			isAdmin: true,
-			skillsOffered: [
-				{ name: 'JavaScript', level: 'Advanced' },
-				{ name: 'React', level: 'Intermediate' }
-			],
-			skillsWanted: [
-				{ name: 'Python', level: 'Beginner' },
-				{ name: 'Design', level: 'Intermediate' }
-			]
-		}));
-	}
-};
+import { auth } from '../utils/auth';
 
 const Dashboard = () => {
 	const [user, setUser] = useState(null);
@@ -33,7 +11,6 @@ const Dashboard = () => {
 	const navigate = useNavigate();
 
 	useEffect(() => {
-		createMockAuth(); // Ensure mock auth is set up
 		fetchUserData();
 		fetchRecentSwaps();
 		fetchSkillSuggestions();
@@ -42,18 +19,43 @@ const Dashboard = () => {
 	const fetchUserData = async () => {
 		try {
 			const token = localStorage.getItem('token');
+			if (!token) {
+				navigate('/login');
+				return;
+			}
+			
 			const response = await axios.get('http://localhost:3334/api/users/profile', {
 				headers: { Authorization: `Bearer ${token}` }
 			});
 			setUser(response.data);
 		} catch (error) {
 			console.error('Error fetching user data:', error);
+			// If unauthorized, redirect to login
+			if (error.response?.status === 401) {
+				localStorage.removeItem('token');
+				navigate('/login');
+			} else {
+				// For demo purposes, set a default user if API fails
+				setUser({
+					_id: 'demo-user',
+					fullName: 'Demo User',
+					username: 'demouser',
+					email: 'demo@example.com',
+					skillsOffered: [
+						{ name: 'JavaScript', level: 'Advanced' },
+						{ name: 'React', level: 'Intermediate' }
+					],
+					skillsWanted: [
+						{ name: 'Python', level: 'Beginner' },
+						{ name: 'Design', level: 'Intermediate' }
+					]
+				});
+			}
 			// For demo mode, use mock user data instead of redirecting to login
 			const mockUser = JSON.parse(localStorage.getItem('mockUser') || '{}');
 			if (mockUser._id) {
 				setUser(mockUser);
 			} else {
-				console.log('Using fallback demo user');
 				setUser({
 					_id: 'demo-user',
 					fullName: 'Demo User',
@@ -153,8 +155,7 @@ const Dashboard = () => {
 	};
 
 	const handleLogout = () => {
-		localStorage.removeItem('token');
-		navigate('/login');
+		auth.logout();
 	};
 
 	if (loading) {
@@ -202,8 +203,8 @@ const Dashboard = () => {
 				</div>
 
 				{/* Stats Cards */}
-				<div className="grid grid-1 md:grid-3 gap-6 mb-8">
-					<div className="card">
+				<div className="flex flex-row gap-6 mb-8">
+					<div className="card flex-1">
 						<div className="card-body text-center">
 							<h3 className="text-2xl font-bold text-blue-600">
 								{user?.skillsOffered?.length || 0}
@@ -211,7 +212,7 @@ const Dashboard = () => {
 							<p className="text-gray-600">Skills Offered</p>
 						</div>
 					</div>
-					<div className="card">
+					<div className="card flex-1">
 						<div className="card-body text-center">
 							<h3 className="text-2xl font-bold text-green-600">
 								{user?.skillsWanted?.length || 0}
@@ -219,7 +220,7 @@ const Dashboard = () => {
 							<p className="text-gray-600">Skills Wanted</p>
 						</div>
 					</div>
-					<div className="card">
+					<div className="card flex-1">
 						<div className="card-body text-center">
 							<h3 className="text-2xl font-bold text-purple-600">
 								{user?.averageRating?.toFixed(1) || '0.0'}
@@ -229,132 +230,108 @@ const Dashboard = () => {
 					</div>
 				</div>
 
-				<div className="grid grid-1 lg:grid-2 gap-8">
-					{/* Recent Swap Requests */}
-					<div className="card">
-						<div className="card-header">
-							<h2 className="text-xl font-semibold">Recent Swap Requests</h2>
-						</div>
-						<div className="card-body">
-							{recentSwaps.length > 0 ? (
-								<div className="space-y-4">
-									{recentSwaps.map((swap) => (
-										<div key={swap._id} className="border-b border-gray-200 pb-4 last:border-b-0">
-											<div className="flex items-center justify-between mb-2">
-												<span className={`status-badge status-${swap.status}`}>
-													{swap.status.charAt(0).toUpperCase() + swap.status.slice(1)}
-												</span>
-												<span className="text-sm text-gray-500">
-													{swap.type === 'sent' ? 'Sent to' : 'Received from'} {
-														swap.type === 'sent'
-															? swap.requested?.fullName
-															: swap.requester?.fullName
-													}
-												</span>
-											</div>
-											<p className="text-sm">
-												<span className="font-medium">Offering:</span> {swap.skillOffered.name}
-											</p>
-											<p className="text-sm">
-												<span className="font-medium">Wanting:</span> {swap.skillWanted.name}
-											</p>
-										</div>
-									))}
-								</div>
-							) : (
-								<p className="text-gray-500 text-center py-4">
-									No swap requests yet. <Link to="/search" className="text-blue-600">Browse skills</Link> to get started!
-								</p>
-							)}
-						</div>
-						<div className="card-footer">
-							<Link to="/swaps" className="btn btn-outline w-full">
-								View All Swaps
-							</Link>
-						</div>
-					</div>
+			   <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+				   {/* Recent Swap Requests */}
+				   <div className="card bg-white border border-blue-100 shadow-lg hover:shadow-2xl transition-shadow duration-300 p-0 flex flex-col">
+					   <div className="card-header flex items-center gap-3 px-8 pt-8 pb-4">
+						   <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+							   <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+							   </svg>
+						   </div>
+						   <h2 className="text-xl font-bold text-blue-700">Recent Swap Requests</h2>
+					   </div>
+					   <div className="card-body px-8 pb-4 flex-1">
+						   {recentSwaps.length > 0 ? (
+							   <div className="space-y-6">
+								   {recentSwaps.map((swap) => (
+									   <div key={swap._id} className="rounded-lg border border-blue-50 bg-blue-50/50 p-4 flex flex-col gap-2 hover:bg-blue-100/70 transition-colors">
+										   <div className="flex items-center justify-between mb-1">
+											   <span className={`status-badge status-${swap.status} font-semibold capitalize px-3 py-1 rounded-full text-xs ${swap.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : swap.status === 'accepted' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>{swap.status}</span>
+											   <span className="text-xs text-gray-500">
+												   {swap.type === 'sent' ? 'Sent to' : 'Received from'}{' '}
+												   <span className="font-semibold text-gray-700">{
+													   swap.type === 'sent'
+														   ? swap.requested?.fullName
+														   : swap.requester?.fullName
+												   }</span>
+											   </span>
+										   </div>
+										   <div className="flex flex-wrap gap-2 text-sm">
+											   <span className="inline-flex items-center gap-1 bg-blue-200 text-blue-800 px-2 py-1 rounded-full">
+												   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3" /></svg>
+												   Offering: <span className="font-semibold">{swap.skillOffered.name}</span>
+											   </span>
+											   <span className="inline-flex items-center gap-1 bg-green-200 text-green-800 px-2 py-1 rounded-full">
+												   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 16V8l-3-3" /></svg>
+												   Wanting: <span className="font-semibold">{swap.skillWanted.name}</span>
+											   </span>
+										   </div>
+									   </div>
+								   ))}
+							   </div>
+						   ) : (
+							   <p className="text-gray-400 text-center py-8 text-base">
+								   No swap requests yet. <Link to="/search" className="text-blue-600 underline hover:text-blue-800">Browse skills</Link> to get started!
+							   </p>
+						   )}
+					   </div>
+					   <div className="card-footer px-8 pb-8">
+						   <Link to="/swaps" className="btn btn-blue w-full font-semibold text-base py-3 rounded-lg shadow hover:shadow-md transition">View All Swaps</Link>
+					   </div>
+				   </div>
 
-					{/* Suggested Connections */}
-					<div className="card">
-						<div className="card-header">
-							<h2 className="text-xl font-semibold">Discover Skills</h2>
-						</div>
-						<div className="card-body">
-							{skillSuggestions.length > 0 ? (
-								<div className="space-y-4">
-									{skillSuggestions.map((suggestedUser) => (
-										<div key={suggestedUser._id} className="flex items-center space-x-3">
-											<img
-												src={suggestedUser.profilePhoto || '/default-avatar.png'}
-												alt={suggestedUser.fullName}
-												className="profile-photo"
-											/>
-											<div className="flex-1">
-												<h4 className="font-medium">{suggestedUser.fullName}</h4>
-												<div className="flex flex-wrap gap-1 mt-1">
-													{suggestedUser.skillsOffered?.slice(0, 2).map((skill, index) => (
-														<span key={index} className="skill-badge skill-badge-offered">
-															{skill.name}
-														</span>
-													))}
-												</div>
-											</div>
-											<Link
-												to={`/user/${suggestedUser._id}`}
-												className="btn btn-primary text-sm"
-											>
-												View
-											</Link>
-										</div>
-									))}
-								</div>
-							) : (
-								<p className="text-gray-500 text-center py-4">
-									No users found. Check back later!
-								</p>
-							)}
-						</div>
-						<div className="card-footer">
-							<Link to="/search" className="btn btn-outline w-full">
-								Browse All Skills
-							</Link>
-						</div>
-					</div>
-				</div>
+				   {/* Suggested Connections */}
+				   <div className="card bg-white border border-purple-100 shadow-lg hover:shadow-2xl transition-shadow duration-300 p-0 flex flex-col">
+					   <div className="card-header flex items-center gap-3 px-8 pt-8 pb-4">
+						   <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+							   <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m9-4V7a4 4 0 00-8 0v3m8 4a4 4 0 01-8 0" />
+							   </svg>
+						   </div>
+						   <h2 className="text-xl font-bold text-purple-700">Discover Skills</h2>
+					   </div>
+					   <div className="card-body px-8 pb-4 flex-1">
+						   {skillSuggestions.length > 0 ? (
+							   <div className="space-y-6">
+								   {skillSuggestions.map((suggestedUser) => (
+									   <div key={suggestedUser._id} className="flex items-center gap-4 p-4 rounded-lg border border-purple-50 bg-purple-50/50 hover:bg-purple-100/70 transition-colors">
+										   <img
+											   src={suggestedUser.profilePhoto || '/default-avatar.png'}
+											   alt={suggestedUser.fullName}
+											   className="w-14 h-14 rounded-full object-cover border-2 border-purple-200 shadow"
+										   />
+										   <div className="flex-1">
+											   <h4 className="font-semibold text-lg text-purple-800 mb-1">{suggestedUser.fullName}</h4>
+											   <div className="flex flex-wrap gap-2 mt-1">
+												   {suggestedUser.skillsOffered?.slice(0, 2).map((skill, index) => (
+													   <span key={index} className="bg-purple-200 text-purple-800 px-2 py-1 rounded-full text-xs font-medium">
+														   {skill.name}
+													   </span>
+												   ))}
+											   </div>
+										   </div>
+										   <Link
+											   to={`/user/${suggestedUser._id}`}
+											   className="btn btn-purple text-sm font-semibold px-4 py-2 rounded-lg shadow hover:shadow-md transition"
+										   >
+											   View
+										   </Link>
+									   </div>
+								   ))}
+							   </div>
+						   ) : (
+							   <p className="text-gray-400 text-center py-8 text-base">
+								   No users found. Check back later!
+							   </p>
+						   )}
+					   </div>
+					   <div className="card-footer px-8 pb-8">
+						   <Link to="/search" className="btn btn-purple w-full font-semibold text-base py-3 rounded-lg shadow hover:shadow-md transition">Browse All Skills</Link>
+					   </div>
+				   </div>
+			   </div>
 
-				{/* Quick Actions */}
-				<div className="mt-8">
-					<h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
-					<div className="grid grid-1 sm:grid-2 lg:grid-4 gap-4">
-						<Link to="/profile" className="btn btn-outline p-6 text-center h-auto">
-							<div>
-								<h3 className="font-semibold mb-2">Update Profile</h3>
-								<p className="text-sm text-gray-600">Add skills and preferences</p>
-							</div>
-						</Link>
-						<Link to="/search" className="btn btn-outline p-6 text-center h-auto">
-							<div>
-								<h3 className="font-semibold mb-2">Find Skills</h3>
-								<p className="text-sm text-gray-600">Search for skills you need</p>
-							</div>
-						</Link>
-						<Link to="/swaps" className="btn btn-outline p-6 text-center h-auto">
-							<div>
-								<h3 className="font-semibold mb-2">Manage Swaps</h3>
-								<p className="text-sm text-gray-600">View and respond to requests</p>
-							</div>
-						</Link>
-						<button
-							onClick={() => navigate('/search')}
-							className="btn btn-primary p-6 text-center h-auto"
-						>
-							<div>
-								<h3 className="font-semibold mb-2">Start Swapping</h3>
-								<p className="text-sm">Begin your skill exchange journey</p>
-							</div>
-						</button>
-					</div>
-				</div>
 			</div>
 		</div>
 	);
