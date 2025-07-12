@@ -103,6 +103,7 @@ router.get('/search', Authenticate, async (req, res) => {
         const { skill, location, availability, page = 1, limit = 10 } = req.query;
 
         let query = {
+            role:"user",
             isProfilePublic: true,
             isBanned: false,
             _id: { $ne: req.user.id } // Exclude current user

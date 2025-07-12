@@ -172,16 +172,37 @@
   z-index: 2;
 }
 
+/* Ensure inputs are visible, dark, and not covered */
 .form-input {
-  width: 100%;
-  padding: 16px 16px 16px 48px;
+  color: #1a202c !important; /* Dark readable text */
+  background-color: #ffffff !important;
   border: 2px solid #e2e8f0;
   border-radius: 12px;
+  padding: 16px 16px 16px 48px;
   font-size: 16px;
   transition: all 0.3s ease;
-  background: #fff;
   box-sizing: border-box;
+  position: relative;
+  z-index: 10;
 }
+
+.form-input::placeholder {
+  color: #718096 !important; /* Medium gray */
+  opacity: 1 !important;
+}
+
+.input-wrapper,
+.form-group {
+  position: relative;
+  z-index: 10;
+}
+
+/* Just in case a background shape is overlapping */
+.login-card {
+  position: relative;
+  z-index: 5;
+}
+
 
 .form-input:focus {
   outline: none;

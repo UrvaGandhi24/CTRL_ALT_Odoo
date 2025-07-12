@@ -39,6 +39,8 @@ const Profile = () => {
         availability: [],
         isProfilePublic: true
     });
+    const [isEditing, setIsEditing] = useState(false);
+    
     const [newSkillOffered, setNewSkillOffered] = useState({ name: '', description: '', level: 'Intermediate' });
     const [newSkillWanted, setNewSkillWanted] = useState({ name: '', description: '', priority: 'Medium' });
     const [loading, setLoading] = useState(true);
@@ -53,6 +55,9 @@ const Profile = () => {
         'Weekends Afternoon',
         'Weekends Evening'
     ];
+    const toggleEditMode = () => {
+	setIsEditing(prev => !prev);
+};
 
     useEffect(() => {
         createMockAuth(); // Ensure mock auth is set up

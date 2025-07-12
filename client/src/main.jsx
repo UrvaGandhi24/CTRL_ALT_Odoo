@@ -15,12 +15,14 @@ import CreateSwapRequest from './components/CreateSwapRequest'
 import AdminDashboard from './components/AdminDashboard'
 import ProtectedRoute from './components/ProtectedRoute'
 import { ToastProvider } from './contexts/ToastContext'
+import AdminProfileView from './components/AdminProfileView'
+import CommonDashboard from './components/CommonDashboard'
 
 const router = createBrowserRouter(
   // routing happens here 
   createRoutesFromElements(
     <Route>
-      <Route path='/' element={<Navigate to="/dashboard" replace />} />
+      <Route path='/' element={<CommonDashboard />} />
       <Route path='/login' element={<Login />} />
       <Route path='/signup' element={<SignUp />} />
       <Route path='/forgotpass' element={<ForgotPassword />} />
@@ -36,6 +38,7 @@ const router = createBrowserRouter(
 
       {/* Admin Routes */}
       <Route path='/admin' element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+      <Route path='/admin-user-profile/:id' element={<ProtectedRoute><AdminProfileView /></ProtectedRoute>} />
     </Route>
   )
 )

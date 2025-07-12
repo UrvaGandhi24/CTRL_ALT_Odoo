@@ -411,6 +411,7 @@ const AdminDashboard = () => {
                                                 </div>
                                             </div>
                                             <div className="flex items-center space-x-2">
+                                            <button onClick={()=>navigate(`/admin-user-profile/${user._id}`)}>View Profile</button>
                                                 {user.isBanned ? (
                                                     <span className="status-badge bg-red-100 text-red-800">Banned</span>
                                                 ) : (
