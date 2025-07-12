@@ -40,7 +40,6 @@ router.get('/profile', Authenticate, async (req, res) => {
 router.put('/profile', Authenticate, async (req, res) => {
     try {
         const {
-            fullName,
             location,
             bio,
             skillsOffered,
@@ -55,7 +54,6 @@ router.put('/profile', Authenticate, async (req, res) => {
         }
 
         // Update fields
-        if (fullName !== undefined) user.fullName = fullName;
         if (location !== undefined) user.location = location;
         if (bio !== undefined) user.bio = bio;
         if (skillsOffered !== undefined) user.skillsOffered = skillsOffered;

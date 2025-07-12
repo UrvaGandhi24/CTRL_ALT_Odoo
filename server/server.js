@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
 import authRoutes from '../server/routes/auth.routes.js'
-// import userRoutes from '../server/routes/user.routes.js'
+import userRoutes from '../server/routes/user.routes.js'
 // import swapRoutes from '../server/routes/swap.routes.js'
 // import adminRoutes from '../server/routes/admin.routes.js'
 
@@ -19,7 +19,7 @@ mongoose.connect(MONGO_URI).then(() => { console.log("MongoDB Connected") }).cat
 
 // Routes
 app.use('/api/auth', authRoutes);
-// app.use('/api/users', userRoutes);
+app.use('/api/users', userRoutes);
 // app.use('/api/swaps', swapRoutes);
 // app.use('/api/admin', adminRoutes);
 

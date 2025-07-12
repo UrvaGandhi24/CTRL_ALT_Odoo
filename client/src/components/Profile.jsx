@@ -31,7 +31,6 @@ const createMockAuth = () => {
 const Profile = () => {
     const [user, setUser] = useState(null);
     const [formData, setFormData] = useState({
-        fullName: '',
         location: '',
         bio: '',
         skillsOffered: [],
@@ -68,7 +67,6 @@ const Profile = () => {
             const userData = response.data;
             setUser(userData);
             setFormData({
-                fullName: userData.fullName || '',
                 location: userData.location || '',
                 bio: userData.bio || '',
                 skillsOffered: userData.skillsOffered || [],
@@ -83,7 +81,6 @@ const Profile = () => {
             if (mockUser._id) {
                 setUser(mockUser);
                 setFormData({
-                    fullName: mockUser.fullName || '',
                     location: mockUser.location || '',
                     bio: mockUser.bio || '',
                     skillsOffered: mockUser.skillsOffered || [],
@@ -221,17 +218,7 @@ const Profile = () => {
                             </div>
                             <div className="card-body space-y-4">
                                 <div className="grid grid-1 md:grid-2 gap-4">
-                                    <div className="form-group">
-                                        <label className="form-label">Full Name</label>
-                                        <input
-                                            type="text"
-                                            name="fullName"
-                                            value={formData.fullName}
-                                            onChange={handleInputChange}
-                                            className="input"
-                                            required
-                                        />
-                                    </div>
+                                    
                                     <div className="form-group">
                                         <label className="form-label">Location (Optional)</label>
                                         <input
