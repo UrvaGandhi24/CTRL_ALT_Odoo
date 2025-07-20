@@ -9,7 +9,16 @@ function SignUp() {
 		fullName: "",
 		email: "",
 		password: "",
-		confirmPassword: ""
+		confirmPassword: "",
+		role: "patient",
+		// Doctor specific fields
+		specialization: "",
+		licenseNumber: "",
+		yearsOfExperience: "",
+		// Patient specific fields
+		dateOfBirth: "",
+		gender: "other",
+		medicalHistory: []
 	});
 	const [loading, setLoading] = useState(false);
 	const [errors, setErrors] = useState({});
@@ -94,6 +103,16 @@ function SignUp() {
 			newErrors.confirmPassword = "Passwords do not match";
 		}
 
+		// Doctor-specific validation
+		if (formData.role === 'doctor') {
+			if (!formData.specialization) {
+				newErrors.specialization = "Specialization is required for doctors";
+			}
+			if (!formData.licenseNumber) {
+				newErrors.licenseNumber = "License number is required for doctors";
+			}
+		}
+
 		setErrors(newErrors);
 		return Object.keys(newErrors).length === 0;
 	};
@@ -115,6 +134,19 @@ function SignUp() {
 				fullName: formData.fullName,
 				email: formData.email,
 				password: formData.password,
+				role: formData.role,
+				// Doctor specific fields
+				...(formData.role === 'doctor' && {
+					specialization: formData.specialization,
+					licenseNumber: formData.licenseNumber,
+					yearsOfExperience: parseInt(formData.yearsOfExperience) || 0
+				}),
+				// Patient specific fields
+				...(formData.role === 'patient' && {
+					dateOfBirth: formData.dateOfBirth,
+					gender: formData.gender,
+					medicalHistory: formData.medicalHistory
+				})
 			});
 
 			console.log("User created!", response.data);
@@ -164,9 +196,9 @@ function SignUp() {
 								</defs>
 							</svg>
 						</div>
-						<h1 className="signup-title">Join SkillSwap</h1>
+						<h1 className="signup-title">Join HealthCare AI</h1>
 						<p className="signup-subtitle">
-							Create your account and start connecting with talented individuals around the world.
+							Create your account and get personalized treatment recommendations validated by healthcare professionals.
 						</p>
 					</div>
 
@@ -329,6 +361,212 @@ function SignUp() {
 								</p>
 							)}
 						</div>
+
+						{/* Role Selection */}
+						<div className="form-group">
+							<label className="form-label">I am a</label>
+							<div className="role-selection">
+								<div className="role-option">
+									<input
+										type="radio"
+										id="patient"
+										name="role"
+										value="patient"
+										checked={formData.role === 'patient'}
+										onChange={handleChange}
+									/>
+									<label htmlFor="patient" className="role-label">
+										<div className="role-icon">
+											<svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+												<path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" strokeWidth="2"/>
+												<circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="2"/>
+											</svg>
+										</div>
+										<div className="role-content">
+											<h4>Patient</h4>
+											<p>Get AI-generated health recommendations</p>
+										</div>
+									</label>
+								</div>
+								<div className="role-option">
+									<input
+										type="radio"
+										id="doctor"
+										name="role"
+										value="doctor"
+										checked={formData.role === 'doctor'}
+										onChange={handleChange}
+									/>
+									<label htmlFor="doctor" className="role-label">
+										<div className="role-icon">
+											<svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+												<path d="M12 2L15.09 8.26L22 9L17 14L18.18 21L12 17.77L5.82 21L7 14L2 9L8.91 8.26L12 2Z" stroke="currentColor" strokeWidth="2" fill="none"/>
+											</svg>
+										</div>
+										<div className="role-content">
+											<h4>Doctor</h4>
+											<p>Review and validate AI recommendations</p>
+										</div>
+									</label>
+								</div>
+							</div>
+						</div>
+
+						{/* Doctor-specific fields */}
+						{formData.role === 'doctor' && (
+							<>
+								<div className="form-row">
+									<div className="form-group">
+										<label className={`form-label ${focusedField === 'specialization' || formData.specialization ? 'focused' : ''}`}>
+											Specialization
+										</label>
+										<div className="input-wrapper">
+											<svg className="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
+												<path d="M12 2L15.09 8.26L22 9L17 14L18.18 21L12 17.77L5.82 21L7 14L2 9L8.91 8.26L12 2Z" stroke="currentColor" strokeWidth="2"/>
+											</svg>
+											<select
+												name="specialization"
+												value={formData.specialization}
+												onChange={handleChange}
+												onFocus={() => setFocusedField('specialization')}
+												onBlur={() => setFocusedField(null)}
+												className={`form-input ${errors.specialization ? 'error' : ''} ${formData.specialization ? 'filled' : ''}`}
+												required
+											>
+												<option value="">Select specialization</option>
+												<option value="General Medicine">General Medicine</option>
+												<option value="Cardiology">Cardiology</option>
+												<option value="Endocrinology">Endocrinology</option>
+												<option value="Nephrology">Nephrology</option>
+												<option value="Hematology">Hematology</option>
+												<option value="Other">Other</option>
+											</select>
+										</div>
+										{errors.specialization && (
+											<p className="field-error">
+												<svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+													<circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+													<line x1="15" y1="9" x2="9" y2="15" stroke="currentColor" strokeWidth="2"/>
+													<line x1="9" y1="9" x2="15" y2="15" stroke="currentColor" strokeWidth="2"/>
+												</svg>
+												{errors.specialization}
+											</p>
+										)}
+									</div>
+
+									<div className="form-group">
+										<label className={`form-label ${focusedField === 'licenseNumber' || formData.licenseNumber ? 'focused' : ''}`}>
+											License Number
+										</label>
+										<div className="input-wrapper">
+											<svg className="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
+												<rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke="currentColor" strokeWidth="2"/>
+												<line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" strokeWidth="2"/>
+												<line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" strokeWidth="2"/>
+												<line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" strokeWidth="2"/>
+											</svg>
+											<input
+												type="text"
+												name="licenseNumber"
+												value={formData.licenseNumber}
+												onChange={handleChange}
+												onFocus={() => setFocusedField('licenseNumber')}
+												onBlur={() => setFocusedField(null)}
+												placeholder="Enter license number"
+												className={`form-input ${errors.licenseNumber ? 'error' : ''} ${formData.licenseNumber ? 'filled' : ''}`}
+												required
+											/>
+										</div>
+										{errors.licenseNumber && (
+											<p className="field-error">
+												<svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+													<circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+													<line x1="15" y1="9" x2="9" y2="15" stroke="currentColor" strokeWidth="2"/>
+													<line x1="9" y1="9" x2="15" y2="15" stroke="currentColor" strokeWidth="2"/>
+												</svg>
+												{errors.licenseNumber}
+											</p>
+										)}
+									</div>
+								</div>
+
+								<div className="form-group">
+									<label className={`form-label ${focusedField === 'yearsOfExperience' || formData.yearsOfExperience ? 'focused' : ''}`}>
+										Years of Experience
+									</label>
+									<div className="input-wrapper">
+										<svg className="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
+											<circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+											<polyline points="12,6 12,12 16,14" stroke="currentColor" strokeWidth="2"/>
+										</svg>
+										<input
+											type="number"
+											name="yearsOfExperience"
+											value={formData.yearsOfExperience}
+											onChange={handleChange}
+											onFocus={() => setFocusedField('yearsOfExperience')}
+											onBlur={() => setFocusedField(null)}
+											placeholder="Years of experience"
+											className={`form-input ${formData.yearsOfExperience ? 'filled' : ''}`}
+											min="0"
+											max="50"
+										/>
+									</div>
+								</div>
+							</>
+						)}
+
+						{/* Patient-specific fields */}
+						{formData.role === 'patient' && (
+							<div className="form-row">
+								<div className="form-group">
+									<label className={`form-label ${focusedField === 'dateOfBirth' || formData.dateOfBirth ? 'focused' : ''}`}>
+										Date of Birth
+									</label>
+									<div className="input-wrapper">
+										<svg className="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
+											<rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke="currentColor" strokeWidth="2"/>
+											<line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" strokeWidth="2"/>
+											<line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" strokeWidth="2"/>
+											<line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" strokeWidth="2"/>
+										</svg>
+										<input
+											type="date"
+											name="dateOfBirth"
+											value={formData.dateOfBirth}
+											onChange={handleChange}
+											onFocus={() => setFocusedField('dateOfBirth')}
+											onBlur={() => setFocusedField(null)}
+											className={`form-input ${formData.dateOfBirth ? 'filled' : ''}`}
+										/>
+									</div>
+								</div>
+
+								<div className="form-group">
+									<label className={`form-label ${focusedField === 'gender' || formData.gender ? 'focused' : ''}`}>
+										Gender
+									</label>
+									<div className="input-wrapper">
+										<svg className="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
+											<circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="2"/>
+											<path d="M16 8V5a1 1 0 0 1 1-1h3M20 4l-4 4M8 16v3a1 1 0 0 1-1 1H4M4 20l4-4" stroke="currentColor" strokeWidth="2"/>
+										</svg>
+										<select
+											name="gender"
+											value={formData.gender}
+											onChange={handleChange}
+											onFocus={() => setFocusedField('gender')}
+											onBlur={() => setFocusedField(null)}
+											className={`form-input ${formData.gender ? 'filled' : ''}`}
+										>
+											<option value="other">Prefer not to say</option>
+											<option value="male">Male</option>
+											<option value="female">Female</option>
+										</select>
+									</div>
+								</div>
+							</div>
+						)}
 
 						{/* Password Field */}
 						<div className="form-group">

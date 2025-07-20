@@ -27,89 +27,34 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: ''
     },
-    profilePhoto: {
-        type: String,
-        default: ''
-    },
-    bio: {
-        type: String,
-        default: '',
-        maxlength: 500
-    },
-    // Skills Information
-    skillsOffered: [{
-        name: {
-            type: String,
-            required: true
-        },
-        description: {
-            type: String,
-            default: ''
-        },
-        level: {
-            type: String,
-            enum: ['Beginner', 'Intermediate', 'Advanced', 'Expert'],
-            default: 'Intermediate'
-        }
-    }],
-    skillsWanted: [{
-        name: {
-            type: String,
-            required: true
-        },
-        description: {
-            type: String,
-            default: ''
-        },
-        priority: {
-            type: String,
-            enum: ['Low', 'Medium', 'High'],
-            default: 'Medium'
-        }
-    }],
-    // Availability
-    availability: {
-        type: [String],
-        enum: ['Weekdays Morning', 'Weekdays Afternoon', 'Weekdays Evening', 'Weekends Morning', 'Weekends Afternoon', 'Weekends Evening'],
-        default: []
-    },
-    // Profile Settings
-    isProfilePublic: {
-        type: Boolean,
-        default: true
-    },
-    // User Status
-    isVerified: {
-        type: Boolean,
-        default: false,
-    },
-    isBanned: {
-        type: Boolean,
-        default: false
-    },
-    // Rating System
-    totalRating: {
-        type: Number,
-        default: 0
-    },
-    ratingCount: {
-        type: Number,
-        default: 0
-    },
-    averageRating: {
-        type: Number,
-        default: 0
-    },
+    createdAt: { type: Date, default: Date.now },
+
     // Role
     role: {
         type: String,
-        enum: ['user', 'admin'],
-        default: 'user'
+        enum: ['patient', 'doctor'],
+        default: 'patient'
     },
+    
+    // Doctor specific fields
+    specialization: { 
+        type: String, 
+        default: '',
+        enum: ['', 'General Medicine', 'Cardiology', 'Endocrinology', 'Nephrology', 'Hematology', 'Other']
+    },
+    licenseNumber: { type: String, default: '' },
+    yearsOfExperience: { type: Number, default: 0 },
+    
+    // Patient specific fields
+    dateOfBirth: { type: Date },
+    gender: { type: String, enum: ['male', 'female', 'other'], default: 'other' },
+    medicalHistory: [{ type: String }],
+
     resetPasswordToken: String,
     resetPasswordExpires: Date
 
-}, { timestamps: true })
+}, { timestamps: true,   collection: 'users'   // ← force it to use the singular collection
+ })
 
 userSchema.pre("save", async function (next) {
     // only hash if it's new or modified
@@ -123,15 +68,6 @@ userSchema.pre("save", async function (next) {
         next(error)
     }
 })
-
-// Calculate average rating
-userSchema.methods.updateAverageRating = function() {
-    if (this.ratingCount > 0) {
-        this.averageRating = this.totalRating / this.ratingCount;
-    } else {
-        this.averageRating = 0;
-    }
-};
 
 const User = mongoose.model('User', userSchema)
 export default User;

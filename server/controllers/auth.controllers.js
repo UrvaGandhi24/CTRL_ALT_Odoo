@@ -4,34 +4,94 @@ import jwt from 'jsonwebtoken'
 
 export const signup = async (req, res) => {
 	try {
-		const { username, email, password, fullName, role } = req.body;
+		const { 
+			username, 
+			fullName, 
+			email, 
+			password, 
+			role, 
+			specialization, 
+			licenseNumber, 
+			yearsOfExperience,
+			dateOfBirth,
+			gender,
+			medicalHistory
+		} = req.body;
 
-		if (!fullName) {
-			return res.status(400).json({ message: "Full name is required" });
+		// Check if user already exists
+		const existingUser = await User.findOne({ 
+			$or: [{ email }, { username }] 
+		});
+		
+		if (existingUser) {
+			return res.status(400).json({ 
+				message: existingUser.email === email 
+					? "User with this email already exists" 
+					: "Username already taken" 
+			});
 		}
 
-		const existingUser = await User.findOne({ email });
-		if (existingUser)
-			return res.status(400).json({ message: "Email already in use" });
+		// Validate role if provided
+		const userRole = role && ['patient', 'doctor'].includes(role) ? role : 'patient';
 
-		const existingUsername = await User.findOne({ username });
-		if (existingUsername)
-			return res.status(400).json({ message: "Username already taken" });
+		// Create user data object
+		const userData = {
+			username,
+			fullName,
+			email,
+			password, // This will be hashed by the pre-save middleware
+			role: userRole
+		};
 
-		const newUser = new User({ username, email, password, fullName, role });
+		// Add role-specific fields
+		if (userRole === 'doctor') {
+			userData.specialization = specialization || '';
+			userData.licenseNumber = licenseNumber || '';
+			userData.yearsOfExperience = yearsOfExperience || 0;
+		} else {
+			userData.dateOfBirth = dateOfBirth ? new Date(dateOfBirth) : undefined;
+			userData.gender = gender || 'other';
+			userData.medicalHistory = medicalHistory || [];
+		}
+
+		// Create new user
+		const newUser = new User(userData);
 		await newUser.save();
 
-		res.status(201).json({ message: "User registered successfully" });
+		// Generate JWT token
+		const token = jwt.sign(
+			{ id: newUser._id, email: newUser.email, role: newUser.role },
+			process.env.JWT_SECRET,
+			{ expiresIn: "24h" }
+		);
+
+		res.status(201).json({ 
+			message: "User created successfully", 
+			token, 
+			role: newUser.role,
+			user: {
+				id: newUser._id,
+				username: newUser.username,
+				fullName: newUser.fullName,
+				email: newUser.email,
+				role: newUser.role,
+				specialization: newUser.specialization
+			}
+		});
 	} catch (error) {
-		console.error(error);
-		res.status(500).json({ message: "Signup failed" });
+		console.error("Signup error:", error);
+		res.status(500).json({ message: "Registration failed" });
 	}
-}
+};
+
 export const login = async (req, res) => {
 	try {
 		const { email, password } = req.body;
+	console.log("Login attempt with email:", email);
 
 		const user = await User.findOne({ email });
+		console.log("User found:", user);
+		
 		if (!user) return res.status(404).json({ message: "User not found" });
 
 		const passMatch = await bcrypt.compare(password, user.password);
@@ -39,12 +99,24 @@ export const login = async (req, res) => {
 			return res.status(401).json({ message: "Invalid credentials" });
 
 		const token = jwt.sign(
-			{ id: user._id, email: user.email  },
+			{ id: user._id, email: user.email, role: user.role  },
 			process.env.JWT_SECRET,
-			{ expiresIn: "10m" }
+			{ expiresIn: "24h" }
 		);
 
-		res.status(200).json({ message: "Login successful", token, role: user.role });
+		res.status(200).json({ 
+			message: "Login successful", 
+			token, 
+			role: user.role,
+			user: {
+				id: user._id,
+				username: user.username,
+				fullName: user.fullName,
+				email: user.email,
+				role: user.role,
+				specialization: user.specialization
+			}
+		});
 	} catch (error) {
 		console.error(error);
 		res.status(500).json({ message: "Login failed" });

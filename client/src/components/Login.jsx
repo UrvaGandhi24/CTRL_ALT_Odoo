@@ -3,6 +3,8 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from 'react-router-dom'
 import { auth } from '../utils/auth';
 import './Login.css';
+import logo from '../assets/icon/medical-report.png';
+import bg from '../assets/icon/login_background.png';
 
 function Login() {
 	const [email, setEmail] = useState("");
@@ -101,18 +103,10 @@ function Login() {
 					{/* Header */}
 					<div className="login-header">
 						<div className="login-icon">
-							<svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-								<path d="M12 2L15.09 8.26L22 9L17 14L18.18 21L12 17.77L5.82 21L7 14L2 9L8.91 8.26L12 2Z" fill="url(#gradient)" />
-								<defs>
-									<linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-										<stop offset="0%" stopColor="#667eea" />
-										<stop offset="100%" stopColor="#764ba2" />
-									</linearGradient>
-								</defs>
-							</svg>
+							<img src={logo} alt="Portal Icon" className="login-icon" />
 						</div>
 						<h1 className="login-title">Welcome Back!</h1>
-						<p className="login-subtitle">Sign in to your SkillSwap account</p>
+						<p className="login-subtitle">Sign in to Doctor AI Portal.</p>
 					</div>
 
 					{/* Error Message */}
@@ -248,11 +242,6 @@ function Login() {
 							</svg>
 							Forgot your password?
 						</Link>
-
-						<div className="signup-link">
-							<span>Don't have an account?</span>
-							<Link to="/signup">Sign up here</Link>
-						</div>
 					</div>
 				</div>
 			</div>

@@ -35,18 +35,15 @@ router.get('/profile', Authenticate, async (req, res) => {
     }
 });
 
-// Update user profile (healthcare-focused)
+// Update user profile
 router.put('/profile', Authenticate, async (req, res) => {
     try {
         const {
             location,
             bio,
-            specialization,
-            licenseNumber,
-            yearsOfExperience,
-            dateOfBirth,
-            gender,
-            medicalHistory,
+            skillsOffered,
+            skillsWanted,
+            availability,
             isProfilePublic
         } = req.body;
 
@@ -55,21 +52,13 @@ router.put('/profile', Authenticate, async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // Update common fields
+        // Update fields
         if (location !== undefined) user.location = location;
         if (bio !== undefined) user.bio = bio;
+        if (skillsOffered !== undefined) user.skillsOffered = skillsOffered;
+        if (skillsWanted !== undefined) user.skillsWanted = skillsWanted;
+        if (availability !== undefined) user.availability = availability;
         if (isProfilePublic !== undefined) user.isProfilePublic = isProfilePublic;
-
-        // Update role-specific fields
-        if (user.role === 'doctor') {
-            if (specialization !== undefined) user.specialization = specialization;
-            if (licenseNumber !== undefined) user.licenseNumber = licenseNumber;
-            if (yearsOfExperience !== undefined) user.yearsOfExperience = yearsOfExperience;
-        } else if (user.role === 'patient') {
-            if (dateOfBirth !== undefined) user.dateOfBirth = dateOfBirth;
-            if (gender !== undefined) user.gender = gender;
-            if (medicalHistory !== undefined) user.medicalHistory = medicalHistory;
-        }
 
         await user.save();
 
@@ -103,6 +92,81 @@ router.post('/profile/photo', Authenticate, upload.single('photo'), async (req, 
         res.json({ message: 'Profile photo updated successfully', photoUrl });
     } catch (error) {
         console.error('Upload photo error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Search users by skills
+router.get('/search', Authenticate, async (req, res) => {
+    try {
+        const { skill, location, availability, page = 1, limit = 10 } = req.query;
+
+        let query = {
+            role:"user",
+            isProfilePublic: true,
+            isBanned: false,
+            _id: { $ne: req.user.id } // Exclude current user
+        };
+
+        // Search by skill in skillsOffered
+        if (skill) {
+            query.$or = [
+                { 'skillsOffered.name': { $regex: skill, $options: 'i' } },
+                { 'skillsOffered.description': { $regex: skill, $options: 'i' } }
+            ];
+        }
+
+        // Filter by location
+        if (location) {
+            query.location = { $regex: location, $options: 'i' };
+        }
+
+        // Filter by availability
+        if (availability) {
+            query.availability = { $in: [availability] };
+        }
+
+        const skip = (page - 1) * limit;
+        const users = await User.find(query)
+            .select('-password -resetPasswordToken -resetPasswordExpires -email')
+            .skip(skip)
+            .limit(parseInt(limit))
+            .sort({ averageRating: -1, createdAt: -1 });
+
+        const total = await User.countDocuments(query);
+
+        res.json({
+            users,
+            pagination: {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                total,
+                pages: Math.ceil(total / limit)
+            }
+        });
+    } catch (error) {
+        console.error('Search users error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Get user by ID (public profile)
+router.get('/:id', Authenticate, async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id)
+            .select('-password -resetPasswordToken -resetPasswordExpires -email');
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        if (!user.isProfilePublic && user._id.toString() !== req.user.id) {
+            return res.status(403).json({ message: 'Profile is private' });
+        }
+
+        res.json(user);
+    } catch (error) {
+        console.error('Get user error:', error);
         res.status(500).json({ message: 'Server error' });
     }
 });
